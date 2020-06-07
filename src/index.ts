@@ -3,7 +3,7 @@
 
 "use strict";
 
-import { playWithMinimax, playWithAlphabeta } from './minimax.js'
+import { playWithMinimax, playWithAlphabeta } from './minimax'
 
 // game parameters
 const DELAY_COMP = 0.5; // seconds for the computer to take its turn

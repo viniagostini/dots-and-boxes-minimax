@@ -4,36 +4,41 @@ const MINUS_INFINITY = -INFINITY
 const PLAYER1_SQUARE = 'p'
 const COMPUTER_SQUARE = 'c'
 
-const initialGameState = [
+const COMPLETE_SQUARE_SIZE = 4
+
+const initialGameState: State = [
   [ '' , '', '' , ''], 
   [ '' , '', '' , ''], 
   [ '' , '', '' , ''], 
   [ '' , '', '' , ''], 
 ]
 
-const getLegalMovesFromSquare = (gameState, x, y) => {
+const getLegalMovesFromSquare = (gameState: State, x: number, y: number): Move[] => {
   const square = gameState[y][x]
   if ([PLAYER1_SQUARE, COMPUTER_SQUARE, 'trbl'].includes(square)) {
     return []
   }
 
-  return ['t', 'r', 'b', 'l'].filter(move => !square.includes(move)).map(move => ({ x, y, move }))
+  return ['t', 'r', 'b', 'l']
+    .filter((edge: Edge) => !square.includes(edge))
+    .map((edge: Edge): Move => ({ x, y, move: edge }))
 }
 
-const getAllValidMoves = (gameState) => {
+const getAllValidMoves = (gameState: State) : Move[] => {
   return gameState.reduce((allChildren, row, y) => {
-    const rowMoves = row.reduce((children, square, x) => {
+    const rowMoves = row.reduce((children, _, x) => {
       return [...children, ...getLegalMovesFromSquare(gameState, x, y)]
     }, [])
     return [...allChildren, ...rowMoves]
   }, [])
 }
 
-const generateNewState = (currentState, move, player) => {
-  let newState = currentState.map(row => [...row])
+const generateNewState = (currentState: State, move: Move, player: string): any => {
+  let newState: State = currentState.map(row => [...row])
   
   newState[move.y][move.x] += move.move
 
+  // update edges
   switch (move.move) {
     case 't':
       if (move.y !== 0) {
@@ -59,19 +64,21 @@ const generateNewState = (currentState, move, player) => {
 
   let markedSquare = false
 
+  // TODO: unecessary iterate over all state. Run this inline while updating the entries
+  // update scored squares
   newState = newState.map(row => {
     return row.map(col => {
-      if (col.length === 4) {
+      if (col.length === COMPLETE_SQUARE_SIZE) {
         markedSquare = true
       }
-      return col.length === 4 ? player : col
+      return col.length === COMPLETE_SQUARE_SIZE ? player : col
     })
   })
 
   return {markedSquare, newState}
 }
 
-const calculateSquareScore = (square) => {
+const calculateSquareScore = (square: string): number => {
   if (square === COMPUTER_SQUARE) {
     return 1
   } else if (square === PLAYER1_SQUARE) {
@@ -80,7 +87,7 @@ const calculateSquareScore = (square) => {
   return 0
 }
 
-const scoreGameState = gameState => {
+const scoreGameState = (gameState: State) => {
   return gameState.reduce((totalScore, row) => {
     return totalScore + row.reduce((rowScore, square) => {
       return rowScore + calculateSquareScore(square)
@@ -88,15 +95,17 @@ const scoreGameState = gameState => {
   }, 0)
 }
 
-const isLeaf = gameState => {
+// TODO: improve performance here
+const isLeaf = (gameState: State) => {
   return getAllValidMoves(gameState).length === 0
 }
 
-const squareIfPossible = (currentState, moves) => moves.filter(move => {
-  return currentState[move.y][move.x].length === 3
-})
+// this is not a good heuristic for end game
+const squareIfPossible = (currentState: State, moves: Move[]) => moves.filter(move => currentState[move.y][move.x].length === 3)
 
-const randomPlayForBigDepth = (currentState, moves, depth) => {
+// this is not a good heuristic for end game
+const randomPlayForBigDepth = (currentState: State, moves: Move[], depth: number) => {
+  //TODO: improve this
   if (depth > 70) {
     const nonCriticalMoves = moves.filter(move => currentState[move.y][move.x].length < 2)
     return nonCriticalMoves.length > 0 ? [nonCriticalMoves[0]] : []
@@ -104,7 +113,7 @@ const randomPlayForBigDepth = (currentState, moves, depth) => {
   return []
 }
 
-const bypassHeuristics = (currentState, moves, depth) => {
+const bypassWithHeuristics = (currentState: State, moves: Move[], depth: number) => {
   if (moves.length === 0) return []
   const sqip = squareIfPossible(currentState, moves)
   if (sqip.length > 0) {
@@ -116,7 +125,7 @@ const bypassHeuristics = (currentState, moves, depth) => {
 let cont = 0
 let minDepth = 1000
 
-const minimax  = (node, depth, maxPlayer) => {
+const minimax  = (node: Node, depth: number, maxPlayer: boolean): number => {
   cont += 1
   
   if (depth < minDepth) {
@@ -136,7 +145,7 @@ const minimax  = (node, depth, maxPlayer) => {
 
     let moves = getAllValidMoves(newState)
     
-    const heuristicsMoves = bypassHeuristics(newState, moves, depth)
+    const heuristicsMoves = bypassWithHeuristics(newState, moves, depth)
 
     // if (depth === 100) {
     //   console.log(moves)
@@ -156,7 +165,7 @@ const minimax  = (node, depth, maxPlayer) => {
   }, initialBestValue)
 }
 
-export const playWithMinimax = (currentState) => {
+export const playWithMinimax = (currentState: State): Move => {
   const moves = getAllValidMoves(currentState)
   const movesScores = moves.map(move => {
     const root = {
@@ -174,7 +183,7 @@ export const playWithMinimax = (currentState) => {
 
   return movesScores.reduce((bestMove, currentMove) => {
     return bestMove.score > currentMove.score ? bestMove : currentMove
-  }, {score: MINUS_INFINITY})
+  }, identityMove)
 }
 
 
@@ -183,14 +192,14 @@ export const playWithMinimax = (currentState) => {
 console.log('min Depth', minDepth)
 // console.log('result ', result)
 
-const interstingState = [
-  ["b", "b", "rb", "l"],
-  ["trbl", "trbl", "trbl", "l"],
-  ["trbl", "trbl", "trbl", "rl"],
-  ["trl", "trl", "tl", ""],
-]
+// const interstingState = [
+//   ["b", "b", "rb", "l"],
+//   ["trbl", "trbl", "trbl", "l"],
+//   ["trbl", "trbl", "trbl", "rl"],
+//   ["trl", "trl", "tl", ""],
+// ]
 
-const alphabeta  = (node, depth, a, b, maxPlayer) => {
+const alphabeta  = (node: Node, depth: number, a: number, b: number, maxPlayer: boolean): number => {
   cont += 1
   
   if (depth < minDepth) {
@@ -212,7 +221,7 @@ const alphabeta  = (node, depth, a, b, maxPlayer) => {
 
     let moves = getAllValidMoves(newState)
     
-    const heuristicsMoves = bypassHeuristics(newState, moves, depth)
+    const heuristicsMoves = bypassWithHeuristics(newState, moves, depth)
 
     if (heuristicsMoves.length > 0) {
       moves = heuristicsMoves
@@ -242,11 +251,34 @@ const alphabeta  = (node, depth, a, b, maxPlayer) => {
   }, initialBestValue)
 }
 
+type Edge = 't' | 'r' | 'b' | 'l'
 
+interface Move {
+  x: number
+  y: number
+  move: Edge
+  score?: number
+}
 
-export const playWithAlphabeta = (currentState) => {
+type State = Array<Array<string>>
+
+interface Node {
+  currentState: State
+  moves: Move[]
+}
+
+const edge: Edge = 'l'
+
+const identityMove = {
+  x: 0,
+  y: 0,
+  move: edge,
+  score: MINUS_INFINITY
+}
+
+export const playWithAlphabeta = (currentState: State): Move => {
   const moves = getAllValidMoves(currentState)
-  const movesScores = moves.map(move => {
+  const movesScores = moves.map((move: Move) => {
     const root = {
       currentState,
       moves: [move]
@@ -262,7 +294,7 @@ export const playWithAlphabeta = (currentState) => {
 
   return movesScores.reduce((bestMove, currentMove) => {
     return bestMove.score > currentMove.score ? bestMove : currentMove
-  }, {score: MINUS_INFINITY})
+  }, identityMove)
 }
 
 
