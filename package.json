@@ -1,0 +1,17 @@
+{
+  "name": "dots-and-boxes-minimax",
+  "version": "1.0.0",
+  "private": true,
+  "repository": "git@github.com:viniagostini/dots-and-boxes-minimax.git",
+  "author": "viniagostini <viniciusaagostini@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "ts-loader": "^7.0.5",
+    "typescript": "^3.9.5",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
+  }
+}
