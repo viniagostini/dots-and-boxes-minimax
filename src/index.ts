@@ -48,22 +48,22 @@ const Side = {
 }
 
 // set up the game canvas
-var canv = document.createElement("canvas");
+let canv = document.createElement("canvas");
 canv.height = HEIGHT;
 canv.width = WIDTH;
 document.body.appendChild(canv);
-var canvRect = canv.getBoundingClientRect();
+let canvRect = canv.getBoundingClientRect();
 
 // set up the context
-var ctx = canv.getContext("2d");
+let ctx = canv.getContext("2d");
 ctx.lineWidth = STROKE;
 ctx.textAlign = "center";
 ctx.textBaseline = "middle";
 
-// game variables
-var currentCells: { row: number; col: number; }[], playersTurn: boolean, squares: string | any[];
-var scoreComp: number, scorePlay: number;
-var timeComp: number, timeEnd: number;
+// game letiables
+let currentCells: { row: number; col: number; }[], playersTurn: boolean, squares: string | any[];
+let scoreComp: number, scorePlay: number;
+let timeComp: number, timeEnd: number;
 
 // start a new game
 newGame();
